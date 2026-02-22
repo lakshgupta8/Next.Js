@@ -9,7 +9,8 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { Button } from '@/app/ui/button';
-import { updateInvoice } from '@/app/lib/actions';
+import { updateInvoice, State } from '@/app/lib/actions';
+import { useActionState } from 'react';
 
 export default function EditInvoiceForm({
   invoice,
@@ -19,8 +20,11 @@ export default function EditInvoiceForm({
   customers: CustomerField[];
 }) {
   const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
+  const initialState: State = { message: null, errors: {} };
+  const [state, formAction] = useActionState(updateInvoiceWithId, initialState);
+
   return (
-    <form action={updateInvoiceWithId}>
+    <form action={formAction} aria-describedby='form-error'>
       <div className="bg-gray-50 p-4 md:p-6 rounded-md">
         {/* Customer Name */}
         <div className="mb-4">
@@ -33,6 +37,7 @@ export default function EditInvoiceForm({
               name="customerId"
               className="peer block py-2 pl-10 border border-gray-200 rounded-md outline-2 w-full placeholder:text-gray-500 text-sm cursor-pointer"
               defaultValue={invoice.customer_id}
+              aria-describedby='customer-error'
             >
               <option value="" disabled>
                 Select a customer
@@ -44,6 +49,14 @@ export default function EditInvoiceForm({
               ))}
             </select>
             <UserCircleIcon className="top-1/2 left-3 absolute w-[18px] h-[18px] text-gray-500 -translate-y-1/2 pointer-events-none" />
+          </div>
+          <div id="customer-error" aria-live="polite" aria-atomic="true">
+            {state.errors?.customerId &&
+              state.errors.customerId.map((error: string) => (
+                <p className="mt-2 text-red-500 text-sm" key={error}>
+                  {error}
+                </p>
+              ))}
           </div>
         </div>
 
@@ -62,8 +75,17 @@ export default function EditInvoiceForm({
                 defaultValue={invoice.amount}
                 placeholder="Enter USD amount"
                 className="peer block py-2 pl-10 border border-gray-200 rounded-md outline-2 w-full placeholder:text-gray-500 text-sm"
+                aria-describedby='amount-error'
               />
               <CurrencyDollarIcon className="top-1/2 left-3 absolute w-[18px] h-[18px] text-gray-500 peer-focus:text-gray-900 -translate-y-1/2 pointer-events-none" />
+            </div>
+            <div id="amount-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.amount &&
+                state.errors.amount.map((error: string) => (
+                  <p className="mt-2 text-red-500 text-sm" key={error}>
+                    {error}
+                  </p>
+                ))}
             </div>
           </div>
         </div>
@@ -83,6 +105,7 @@ export default function EditInvoiceForm({
                   value="pending"
                   defaultChecked={invoice.status === 'pending'}
                   className="bg-gray-100 border-gray-300 focus:ring-2 w-4 h-4 text-gray-600 cursor-pointer"
+                  aria-describedby='status-error'
                 />
                 <label
                   htmlFor="pending"
@@ -108,6 +131,19 @@ export default function EditInvoiceForm({
                 </label>
               </div>
             </div>
+          </div>
+          <div id="status-error" aria-live="polite" aria-atomic="true">
+            {state.errors?.status &&
+              state.errors.status.map((error: string) => (
+                <p className="mt-2 text-red-500 text-sm" key={error}>
+                  {error}
+                </p>
+              ))}
+          </div>
+          <div id="form-error" aria-live="polite" aria-atomic="true">
+            {state.message && (
+              <p className="mt-2 text-red-500 text-sm">{state.message}</p>
+            )}
           </div>
         </fieldset>
       </div>
